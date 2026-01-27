@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Box, Card, CardContent, Chip, Stack, Typography } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -9,6 +9,7 @@ import { useAuth } from '@/app/providers/auth/useAuth'
 
 export default function Tasks() {
   const { logout } = useAuth()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const location = useLocation()
   const modal = useModal()
@@ -60,10 +61,13 @@ export default function Tasks() {
         title: '오류',
         content: e.message,
         confirmText: '목록으로',
-        onClose: () => navigate('/', { replace: true }),
+        onClose: () => {
+          queryClient.removeQueries({ queryKey: ['tasks'] })
+          navigate('/tasks', { replace: true })
+        },
       })
     }
-  }, [query, location, navigate, modal, logout])
+  }, [query, location, navigate, modal, logout, queryClient])
 
   return (
     <Box

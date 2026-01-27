@@ -7,12 +7,6 @@ import type { ApiErrorResponse } from '@/shared/api/types'
 export const getTasks = async (page: number) => {
   const res = await http.get(`/api/task?page=${page}`)
 
-  if (res.status === 400) {
-    const error = (await res.json()) as ApiErrorResponse
-    if (error.errorMessage.includes('[400 에러 테스트]')) return []
-    throw new Error(error.errorMessage)
-  }
-
   if (!res.ok) {
     if (!res.ok) {
       const body = (await res.json().catch(() => null)) as ApiErrorResponse | null
