@@ -12,6 +12,7 @@ export type ConfirmOptions = {
   content: React.ReactNode
   confirmText?: string
   cancelText?: string
+  confirmDisabled?: boolean
   onConfirm?: () => void | Promise<void>
   onCancel?: () => void | Promise<void>
 }
@@ -33,5 +34,6 @@ export type ModalState = AlertState | ConfirmState | null
 export type ModalApi = {
   alert: (options: AlertOptions) => Promise<void>
   confirm: (options: ConfirmOptions) => Promise<boolean>
+  update: (patch: Partial<AlertOptions & ConfirmOptions>) => void
   close: () => void
 }

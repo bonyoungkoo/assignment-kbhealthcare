@@ -22,7 +22,17 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     })
   }, [])
 
-  const api = useMemo<ModalApi>(() => ({ alert, confirm, close }), [alert, confirm, close])
+  const update = useCallback((patch: Partial<ConfirmOptions & AlertOptions>) => {
+    setState(prev => {
+      if (!prev) return prev
+      return { ...prev, options: { ...prev.options, ...patch } as typeof prev.options }
+    })
+  }, [])
+
+  const api = useMemo<ModalApi>(
+    () => ({ alert, confirm, close, update }),
+    [alert, confirm, close, update],
+  )
 
   const handleAlertClose = async () => {
     if (state?.type !== 'alert') return
@@ -71,7 +81,11 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
           {state?.type === 'confirm' ? (
             <>
               <Button onClick={handleConfirmReject}>{state.options.cancelText ?? '취소'}</Button>
-              <Button variant="contained" onClick={handleConfirmApprove}>
+              <Button
+                variant="contained"
+                onClick={handleConfirmApprove}
+                disabled={state.options.confirmDisabled}
+              >
                 {state.options.confirmText ?? '확인'}
               </Button>
             </>
