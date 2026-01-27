@@ -2,13 +2,18 @@ import { http, HttpResponse } from 'msw'
 import { db, nowSec } from './db'
 import { refreshSessions } from './session.store'
 
-const ACCESS_TTL_SEC = 10
-export const REFRESH_TTL_SEC = 15
+export const ACCESS_TTL_SEC = 10
+export const REFRESH_TTL_SEC = 60
 
 const PAGE_SIZE = 10
 const MAX_PAGE = 12
 
-type SignInBody = { email: string; password: string }
+type SignInBody = {
+  email: string
+  password: string
+  accessTtlSec: number
+  refreshTtlSec: number
+}
 type JwtPayload = { id: string; exp: number }
 
 const createMockJwt = (payload: JwtPayload) => {
@@ -28,7 +33,8 @@ const decodeMockJwt = <T>(token: string): T | null => {
 
 export const handlers = [
   http.post('/api/auth/sign-in', async ({ request }) => {
-    const { email, password } = (await request.json()) as SignInBody
+    console.log('request', request)
+    const { email, password, accessTtlSec, refreshTtlSec } = (await request.json()) as SignInBody
 
     const user = db.users.find(u => u.email === email && u.password === password)
     if (!user) {
@@ -38,12 +44,12 @@ export const handlers = [
       )
     }
 
-    const accessToken = createMockJwt({ id: user.id, exp: nowSec() + ACCESS_TTL_SEC })
-    const refreshToken = createMockJwt({ id: user.id, exp: nowSec() + REFRESH_TTL_SEC })
+    const accessToken = createMockJwt({ id: user.id, exp: nowSec() + accessTtlSec })
+    const refreshToken = createMockJwt({ id: user.id, exp: nowSec() + refreshTtlSec })
 
     refreshSessions.set(refreshToken, {
       id: user.id,
-      exp: nowSec() + REFRESH_TTL_SEC,
+      exp: nowSec() + refreshTtlSec,
     })
 
     return HttpResponse.json({ accessToken, refreshToken }, { status: 200 })

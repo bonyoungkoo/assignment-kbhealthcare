@@ -14,8 +14,17 @@ type MeResponse = {
   name: string
 }
 
-export const signIn = async (email: string, password: string) => {
-  const res = await http.post('/api/auth/sign-in', { email, password })
+export type SignInOptions = {
+  accessTtlSec?: number
+  refreshTtlSec?: number
+}
+
+export const signIn = async (
+  email: string,
+  password: string,
+  options: { accessTtlSec: number; refreshTtlSec: number },
+) => {
+  const res = await http.post('/api/auth/sign-in', { email, password, ...options })
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as ApiErrorResponse | null
     throw new ApiError(res.status, body?.errorMessage ?? '요청에 실패했습니다.')

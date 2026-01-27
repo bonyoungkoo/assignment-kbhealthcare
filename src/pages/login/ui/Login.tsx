@@ -13,7 +13,12 @@ import {
   Stack,
   TextField,
   Typography,
+  Collapse,
+  Divider,
+  IconButton,
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import { me, signIn } from '@/features/auth/api/auth.api'
 import { loginSchema, type LoginFormValues } from '../model/login.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,6 +26,7 @@ import { useForm } from 'react-hook-form'
 import { useAuth } from '@/app/providers/auth/useAuth'
 import { useModal } from '@/app/providers/modal/useModal'
 import { useQueryClient } from '@tanstack/react-query'
+import { ACCESS_TTL_SEC, REFRESH_TTL_SEC } from '@/mocks/handlers'
 
 const getRedirectTo = (search: string) => {
   const params = new URLSearchParams(search)
@@ -32,6 +38,11 @@ const sanitizeRedirectTo = (path: string) => {
   if (!path.startsWith('/')) return '/'
   if (path.startsWith('//')) return '/'
   return path
+}
+
+const clampInt = (v: number, min: number, max: number) => {
+  if (Number.isNaN(v)) return min
+  return Math.max(min, Math.min(max, Math.floor(v)))
 }
 
 export default function Login() {
@@ -48,6 +59,10 @@ export default function Login() {
 
   const [apiError, setApiError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const [showTestOptions, setShowTestOptions] = useState(false)
+  const [accessTtlSec, setAccessTtlSec] = useState<number>(ACCESS_TTL_SEC)
+  const [refreshTtlSec, setRefreshTtlSec] = useState<number>(REFRESH_TTL_SEC)
 
   const {
     register,
@@ -69,7 +84,12 @@ export default function Login() {
     try {
       setSubmitting(true)
       queryClient.removeQueries({ queryKey: ['tasks'] })
-      await signIn(values.email, values.password)
+
+      await signIn(values.email, values.password, {
+        accessTtlSec: clampInt(accessTtlSec, 1, 300),
+        refreshTtlSec: clampInt(refreshTtlSec, 10, 3600),
+      })
+
       const user = await me()
       setUser(user)
       navigate(redirectTo, { replace: true })
@@ -134,6 +154,71 @@ export default function Login() {
               helperText={errors.password?.message}
               {...register('password')}
             />
+
+            <Stack spacing={1}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">
+                  테스트 옵션(만료시간 설정)
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => setShowTestOptions(v => !v)}
+                  disabled={submitting}
+                  aria-label="toggle test options"
+                >
+                  {showTestOptions ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </Stack>
+
+              <Collapse in={showTestOptions}>
+                <Stack
+                  spacing={1.5}
+                  sx={{ p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {`과제 검증을 위한 테스트 전용 설정입니다. (Access TTL: 기본값 ${ACCESS_TTL_SEC}초 / Refresh TTL: 기본값 ${REFRESH_TTL_SEC}초)`}
+                  </Typography>
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                    <TextField
+                      label="Access TTL (sec)"
+                      type="number"
+                      value={accessTtlSec}
+                      onChange={e => setAccessTtlSec(Number(e.target.value))}
+                      inputProps={{ min: 1, max: 300, step: 1 }}
+                      fullWidth
+                      disabled={submitting}
+                    />
+
+                    <TextField
+                      label="Refresh TTL (sec)"
+                      type="number"
+                      value={refreshTtlSec}
+                      onChange={e => setRefreshTtlSec(Number(e.target.value))}
+                      inputProps={{ min: 10, max: 3600, step: 10 }}
+                      fullWidth
+                      disabled={submitting}
+                    />
+                  </Stack>
+
+                  <Divider />
+
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setAccessTtlSec(ACCESS_TTL_SEC)
+                        setRefreshTtlSec(REFRESH_TTL_SEC)
+                      }}
+                      disabled={submitting}
+                    >
+                      기본값으로
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Collapse>
+            </Stack>
 
             <Button
               type="submit"
