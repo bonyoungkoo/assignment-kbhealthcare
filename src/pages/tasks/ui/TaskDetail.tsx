@@ -43,6 +43,16 @@ export default function TaskDetail() {
     mutationFn: (targetId: string) => deleteTask(targetId),
   })
 
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+
   const errorStatus = useMemo(() => {
     const e = query.error
     if (!e) return null
@@ -137,7 +147,7 @@ export default function TaskDetail() {
             </Stack>
 
             <Typography variant="body2" color="text.secondary">
-              등록일시: {task.registerDatetime}
+              등록일시: {formatDate(task.registerDatetime)}
             </Typography>
 
             <Divider sx={{ my: 1 }} />
