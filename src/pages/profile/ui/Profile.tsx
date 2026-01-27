@@ -1,25 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material'
-import { me } from '@/features/auth/api/auth.api'
 import { useModal } from '@/app/providers/modal/useModal'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/providers/auth/useAuth'
-
-type MeResponse = { id: string; email: string; name: string }
+import { getUser } from '@/features/profile/profile.api'
+import type { User } from '@/mocks/db'
 
 export default function Profile() {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const modal = useModal()
-  const [data, setData] = useState<MeResponse | null>(null)
+  const [data, setData] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const run = async () => {
       try {
         setLoading(true)
-        const res = (await me()) as MeResponse
-        setData(res)
+        const user = (await getUser()) as User
+        setData(user)
       } catch (e: unknown) {
         if (e instanceof Error) {
           await modal.alert({

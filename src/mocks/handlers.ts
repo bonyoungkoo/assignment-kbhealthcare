@@ -83,7 +83,7 @@ export const handlers = [
     return HttpResponse.json({ ok: true }, { status: 200, headers })
   }),
 
-  http.get('/api/auth/me', ({ request }) => {
+  http.get('/api/user', ({ request }) => {
     const auth = request.headers.get('authorization')
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
     if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })

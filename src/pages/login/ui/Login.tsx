@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import { me, signIn } from '@/features/auth/api/auth.api'
+import { signIn } from '@/features/auth/api/auth.api'
 import { loginSchema, type LoginFormValues } from '../model/login.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -27,6 +27,7 @@ import { useAuth } from '@/app/providers/auth/useAuth'
 import { useModal } from '@/app/providers/modal/useModal'
 import { useQueryClient } from '@tanstack/react-query'
 import { ACCESS_TTL_SEC, REFRESH_TTL_SEC } from '@/mocks/handlers'
+import { getUser } from '@/features/profile/profile.api'
 
 const getRedirectTo = (search: string) => {
   const params = new URLSearchParams(search)
@@ -90,7 +91,7 @@ export default function Login() {
         refreshTtlSec: clampInt(refreshTtlSec, 10, 3600),
       })
 
-      const user = await me()
+      const user = await getUser()
       setUser(user)
       navigate(redirectTo, { replace: true })
     } catch (e: unknown) {

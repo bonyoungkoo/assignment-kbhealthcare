@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AuthContext, type AuthContextValue, type AuthUser } from './AuthContext'
-import { me } from '@/features/auth/api/auth.api'
 import { getRefreshToken, setAccessToken, setRefreshToken } from '@/shared/api/token'
 import { http } from '@/shared/api/http'
+import { getUser } from '@/features/profile/profile.api'
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { accessToken } = (await res.json()) as { accessToken: string }
     setAccessToken(accessToken)
 
-    const user = (await me()) as AuthUser
+    const user = (await getUser()) as AuthUser
     setUser(user)
     return user
   }
