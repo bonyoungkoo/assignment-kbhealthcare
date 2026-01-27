@@ -17,7 +17,7 @@
 #### 1. 프로젝트 클론
 
 ```bash
-git clone https://github.com/본인계정/assignment-kbhealthcare.git
+git clone https://github.com/bonyoungkoo/assignment-kbhealthcare.git
 cd assignment-kbhealthcare
 ```
 
@@ -218,7 +218,7 @@ src
 
 - refreshToken 세션 관리
 - 토큰 만료 시점 제어
-- 페이지 범위 초과 시 400 에러 처리
+- 무한 스크롤 진행 중 발생하는 400 에러 케이스의 의미 정의 및 처리
 
 이 부분은 너무 과하게 구현해도 과제 의도에서 벗어나고,  
 반대로 너무 단순하게 구현하면 프론트엔드 로직을 충분히 검증하기 어렵다고 판단했습니다.
