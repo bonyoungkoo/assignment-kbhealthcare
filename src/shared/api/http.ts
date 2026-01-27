@@ -1,5 +1,7 @@
 import { getAccessToken, setAccessToken } from './token'
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+
 let refreshPromise: Promise<string | null> | null = null
 
 const refreshAccessToken = async (): Promise<string | null> => {
@@ -65,8 +67,8 @@ const request = async (input: RequestInfo, init: RequestInit = {}) => {
 }
 
 export const http = {
-  get: (url: string) => request(url),
+  get: (url: string) => request(`${API_BASE}${url}`),
   post: (url: string, body?: unknown) =>
-    request(url, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
-  delete: (url: string) => request(url, { method: 'DELETE' }),
+    request(`${API_BASE}${url}`, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  delete: (url: string) => request(`${API_BASE}${url}`, { method: 'DELETE' }),
 }
