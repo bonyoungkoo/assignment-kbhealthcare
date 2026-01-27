@@ -2,6 +2,8 @@ import { http, HttpResponse } from 'msw'
 import { db, nowSec } from './db'
 import { refreshSessions } from './session.store'
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+
 export const ACCESS_TTL_SEC = 10
 export const REFRESH_TTL_SEC = 60
 
@@ -32,7 +34,7 @@ const decodeMockJwt = <T>(token: string): T | null => {
 }
 
 export const handlers = [
-  http.post('/api/auth/sign-in', async ({ request }) => {
+  http.post(`${API_BASE}/api/auth/sign-in`, async ({ request }) => {
     console.log('request', request)
     const { email, password, accessTtlSec, refreshTtlSec } = (await request.json()) as SignInBody
 
@@ -55,7 +57,7 @@ export const handlers = [
     return HttpResponse.json({ accessToken, refreshToken }, { status: 200 })
   }),
 
-  http.post('/api/auth/refresh', ({ cookies }) => {
+  http.post(`${API_BASE}/api/auth/refresh`, ({ cookies }) => {
     const refreshToken = cookies?.rt
     console.log('refreshToken', refreshToken)
     if (!refreshToken)
@@ -71,7 +73,7 @@ export const handlers = [
     return HttpResponse.json({ accessToken }, { status: 200 })
   }),
 
-  http.post('/api/auth/logout', ({ cookies }) => {
+  http.post(`${API_BASE}/api/auth/logout`, ({ cookies }) => {
     const rt = cookies?.rt
     if (rt) {
       refreshSessions.delete(rt)
@@ -83,7 +85,7 @@ export const handlers = [
     return HttpResponse.json({ ok: true }, { status: 200, headers })
   }),
 
-  http.get('/api/user', ({ request }) => {
+  http.get(`${API_BASE}/api/user`, ({ request }) => {
     const auth = request.headers.get('authorization')
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
     if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
@@ -99,7 +101,7 @@ export const handlers = [
     return HttpResponse.json({ id: user.id, email: user.email, name: user.name }, { status: 200 })
   }),
 
-  http.get('/api/dashboard', ({ request }) => {
+  http.get(`${API_BASE}/api/dashboard`, ({ request }) => {
     const auth = request.headers.get('authorization')
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
     if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
@@ -116,7 +118,7 @@ export const handlers = [
     return HttpResponse.json({ numOfTask, numOfRestTask, numOfDoneTask }, { status: 200 })
   }),
 
-  http.get('/api/task', ({ request }) => {
+  http.get(`${API_BASE}/api/task`, ({ request }) => {
     const auth = request.headers.get('authorization')
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
     if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
@@ -141,7 +143,7 @@ export const handlers = [
     return HttpResponse.json(slice, { status: 200 })
   }),
 
-  http.get('/api/task/:id', ({ params, request }) => {
+  http.get(`${API_BASE}/api/task/:id`, ({ params, request }) => {
     const auth = request.headers.get('authorization')
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
     if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
@@ -158,7 +160,7 @@ export const handlers = [
     return HttpResponse.json(task, { status: 200 })
   }),
 
-  http.delete('/api/task/:id', ({ params, request }) => {
+  http.delete(`${API_BASE}/api/task/:id`, ({ params, request }) => {
     const auth = request.headers.get('authorization')
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
     if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
