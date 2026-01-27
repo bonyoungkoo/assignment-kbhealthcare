@@ -1,18 +1,25 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  Alert,
   Box,
   Button,
   Card,
   CardContent,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
-import { signIn } from '@/features/auth/api/auth.api'
+import { me, signIn } from '@/features/auth/api/auth.api'
+import { loginSchema, type LoginFormValues } from '../model/login.schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import { useAuth } from '@/app/providers/auth/useAuth'
+import { useModal } from '@/app/providers/modal/useModal'
 
 const getRedirectTo = (search: string) => {
   const params = new URLSearchParams(search)
@@ -20,7 +27,6 @@ const getRedirectTo = (search: string) => {
   return raw ? decodeURIComponent(raw) : '/'
 }
 
-// 보안/UX: 외부 URL로 튕기는 open redirect 방지(간단 버전)
 const sanitizeRedirectTo = (path: string) => {
   if (!path.startsWith('/')) return '/'
   if (path.startsWith('//')) return '/'
@@ -29,105 +35,126 @@ const sanitizeRedirectTo = (path: string) => {
 
 export default function Login() {
   const navigate = useNavigate()
+  const modal = useModal()
+  const { setUser } = useAuth()
   const location = useLocation()
-  const { user, setUser } = useAuth()
 
   const redirectTo = useMemo(
     () => sanitizeRedirectTo(getRedirectTo(location.search)),
     [location.search],
   )
 
-  const [email, setEmail] = useState('test@test.com')
-  const [password, setPassword] = useState('1234')
-  const [error, setError] = useState<string | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  // 이미 로그인된 상태면 로그인 페이지에 머물 필요 없음
-  useEffect(() => {
-    if (user) navigate(redirectTo, { replace: true })
-  }, [user, redirectTo, navigate])
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onChange',
+    defaultValues: {
+      email: 'test@test.com',
+      password: '12345678',
+    },
+  })
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+  watch(['email', 'password'])
 
-    if (!email.trim() || !password.trim()) {
-      setError('이메일과 비밀번호를 입력해 주세요.')
-      return
-    }
-
+  const onSubmit = async (values: LoginFormValues) => {
     try {
       setSubmitting(true)
-      const loggedInUser = await signIn(email.trim(), password)
-      setUser(loggedInUser)
+      await signIn(values.email, values.password)
+      const user = await me()
+      setUser(user)
       navigate(redirectTo, { replace: true })
-    } catch {
-      setError('로그인에 실패했습니다. 이메일/비밀번호를 확인해 주세요.')
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        handleOpenModal(e.message)
+      } else {
+        handleOpenModal('로그인에 실패했습니다.')
+      }
     } finally {
       setSubmitting(false)
     }
   }
 
+  const handleOpenModal = (message: string) => {
+    modal.alert({
+      title: '알림',
+      content: message ?? '',
+    })
+  }
+
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: 'calc(100vh - 64px)',
+        width: 1,
         display: 'grid',
         placeItems: 'center',
         p: 2,
       }}
     >
-      <Card sx={{ width: '100%', maxWidth: 420 }}>
+      <Card sx={{ width: 1, maxWidth: 720 }}>
         <CardContent>
-          <Stack spacing={2.5} component="form" onSubmit={onSubmit}>
+          <Stack spacing={2.5} component="form" onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={0.5}>
               <Typography variant="h5" fontWeight={700}>
-                Sign in
+                로그인
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                테스트 계정: test@test.com / 1234
+              <Typography variant="body2" color="primary">
+                테스트 계정: test@test.com / 12345678
               </Typography>
             </Stack>
-
-            {error && <Alert severity="error">{error}</Alert>}
 
             <TextField
               label="Email"
               type="email"
-              value={email}
               autoComplete="username"
-              onChange={e => setEmail(e.target.value)}
               fullWidth
               disabled={submitting}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+              {...register('email')}
             />
 
             <TextField
               label="Password"
               type="password"
-              value={password}
               autoComplete="current-password"
-              onChange={e => setPassword(e.target.value)}
               fullWidth
               disabled={submitting}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              {...register('password')}
             />
 
             <Button
               type="submit"
               variant="contained"
               size="large"
-              disabled={submitting}
               fullWidth
+              disabled={!isValid || submitting}
               startIcon={submitting ? <CircularProgress size={18} /> : undefined}
             >
-              {submitting ? 'Signing in...' : 'Sign in'}
+              {submitting ? '로그인 중...' : '로그인'}
             </Button>
-
-            <Typography variant="caption" color="text.secondary">
-              로그인 성공 시 <b>{redirectTo}</b> 로 이동합니다.
-            </Typography>
           </Stack>
         </CardContent>
       </Card>
+
+      <Dialog open={!!apiError} onClose={() => setApiError(null)}>
+        <DialogTitle>로그인 실패</DialogTitle>
+        <DialogContent>{apiError}</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setApiError(null)} autoFocus>
+            확인
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
