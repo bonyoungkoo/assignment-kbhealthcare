@@ -11,6 +11,34 @@
 
 - https://dugout.dev/assignment/kbhealthcare
 
+<br />
+
+### 🚀 로컬 환경에서 실행하기
+#### 1. 프로젝트 클론
+
+```bash
+git clone https://github.com/본인계정/assignment-kbhealthcare.git
+cd assignment-kbhealthcare
+```
+
+#### 2. 패키지 설치
+
+```bash
+npm install
+```
+
+#### 3. MSW 초기화 (최초 1회)
+
+```bash
+npx msw init public
+```
+
+#### 4. 개발 서버 실행
+
+```bash
+npm run dev
+```
+
 ---
 
 ## 📌 주요 기능 요약
