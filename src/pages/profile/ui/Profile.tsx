@@ -22,7 +22,14 @@ export default function Profile() {
         setData(res)
       } catch (e: unknown) {
         if (e instanceof Error) {
-          await modal.alert({ title: '회원정보 조회 실패', content: e.message })
+          await modal.alert({
+            title: '알림',
+            content: e.message,
+            onClose: () => {
+              logout()
+              navigate('/login', { replace: true })
+            },
+          })
         }
         setData(null)
       } finally {
@@ -30,7 +37,7 @@ export default function Profile() {
       }
     }
     run()
-  }, [modal])
+  }, [logout, navigate, modal])
 
   if (loading) {
     return (

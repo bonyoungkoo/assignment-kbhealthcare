@@ -3,7 +3,7 @@ import { db, nowSec } from './db'
 import { refreshSessions } from './session.store'
 
 const ACCESS_TTL_SEC = 10
-export const REFRESH_TTL_SEC = 60 * 30
+export const REFRESH_TTL_SEC = 15
 
 const PAGE_SIZE = 10
 const MAX_PAGE = 12
@@ -45,8 +45,6 @@ export const handlers = [
       id: user.id,
       exp: nowSec() + REFRESH_TTL_SEC,
     })
-
-    console.log('refreshSessions', refreshSessions)
 
     return HttpResponse.json({ accessToken, refreshToken }, { status: 200 })
   }),
@@ -95,6 +93,23 @@ export const handlers = [
     return HttpResponse.json({ id: user.id, email: user.email, name: user.name }, { status: 200 })
   }),
 
+  http.get('/api/dashboard', ({ request }) => {
+    const auth = request.headers.get('authorization')
+    const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
+    if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
+
+    const payload = decodeMockJwt<JwtPayload>(token)
+    if (!payload || payload.exp < nowSec()) {
+      return HttpResponse.json({ errorMessage: 'Access token expired' }, { status: 401 })
+    }
+
+    const numOfTask = db.tasks.length
+    const numOfDoneTask = db.tasks.filter(t => t.status === 'DONE').length
+    const numOfRestTask = db.tasks.filter(t => t.status === 'TODO').length
+
+    return HttpResponse.json({ numOfTask, numOfRestTask, numOfDoneTask }, { status: 200 })
+  }),
+
   http.get('/api/task', ({ request }) => {
     const auth = request.headers.get('authorization')
     const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
@@ -118,5 +133,40 @@ export const handlers = [
     const slice = db.tasks.slice(start, end)
 
     return HttpResponse.json(slice, { status: 200 })
+  }),
+
+  http.get('/api/task/:id', ({ params, request }) => {
+    const auth = request.headers.get('authorization')
+    const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
+    if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
+
+    const payload = decodeMockJwt<JwtPayload>(token)
+    if (!payload || payload.exp < nowSec()) {
+      return HttpResponse.json({ errorMessage: 'Access token expired' }, { status: 401 })
+    }
+
+    const id = String(params.id)
+    const task = db.tasks.find(t => t.id === id)
+    if (!task) return HttpResponse.json({ errorMessage: 'Not found' }, { status: 404 })
+
+    return HttpResponse.json(task, { status: 200 })
+  }),
+
+  http.delete('/api/task/:id', ({ params, request }) => {
+    const auth = request.headers.get('authorization')
+    const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
+    if (!token) return HttpResponse.json({ errorMessage: 'No access token' }, { status: 401 })
+
+    const payload = decodeMockJwt<JwtPayload>(token)
+    if (!payload || payload.exp < nowSec()) {
+      return HttpResponse.json({ errorMessage: 'Access token expired' }, { status: 401 })
+    }
+
+    const id = String(params.id)
+    const idx = db.tasks.findIndex(t => t.id === id)
+    if (idx < 0) return HttpResponse.json({ errorMessage: 'Not found' }, { status: 404 })
+
+    db.tasks.splice(idx, 1)
+    return HttpResponse.json({ ok: true }, { status: 200 })
   }),
 ]

@@ -20,6 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '@/app/providers/auth/useAuth'
 import { useModal } from '@/app/providers/modal/useModal'
+import { useQueryClient } from '@tanstack/react-query'
 
 const getRedirectTo = (search: string) => {
   const params = new URLSearchParams(search)
@@ -34,6 +35,7 @@ const sanitizeRedirectTo = (path: string) => {
 }
 
 export default function Login() {
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const modal = useModal()
   const { setUser } = useAuth()
@@ -56,7 +58,7 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
     defaultValues: {
-      email: 'test@test.com',
+      email: 'user1@test.com',
       password: '12345678',
     },
   })
@@ -66,6 +68,7 @@ export default function Login() {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       setSubmitting(true)
+      queryClient.removeQueries({ queryKey: ['tasks'] })
       await signIn(values.email, values.password)
       const user = await me()
       setUser(user)
@@ -106,7 +109,7 @@ export default function Login() {
                 로그인
               </Typography>
               <Typography variant="body2" color="primary">
-                테스트 계정: test@test.com / 12345678
+                테스트 계정: user1@test.com / 12345678
               </Typography>
             </Stack>
 
