@@ -4,8 +4,8 @@ import { refreshSessions } from './session.store'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
-export const ACCESS_TTL_SEC = 10
-export const REFRESH_TTL_SEC = 60
+export const ACCESS_TTL_SEC = 30
+export const REFRESH_TTL_SEC = 60 * 2
 
 const PAGE_SIZE = 10
 const MAX_PAGE = 12
