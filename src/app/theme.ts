@@ -10,4 +10,13 @@ export const theme = createTheme({
       disabled: colors.disabled.main,
     },
   },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        html: { height: '100%' },
+        body: { height: '100%', margin: 0, display: 'block' },
+        '#root': { height: '100%' },
+      },
+    },
+  },
 })
