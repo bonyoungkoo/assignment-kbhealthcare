@@ -6,8 +6,6 @@ import { AppProviders } from './app/providers/AppProviders.tsx'
 import { router } from './app/router/Router.tsx'
 
 async function enableMocking() {
-  if (!import.meta.env.DEV) return
-
   const { worker } = await import('@/mocks/browser')
 
   const base = import.meta.env.BASE_URL
