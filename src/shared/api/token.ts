@@ -8,8 +8,8 @@ export const getAccessToken = () => accessToken
 
 const REFRESH_KEY = 'rt'
 
-export const setRefreshToken = (token: string) => {
-  document.cookie = `${REFRESH_KEY}=${encodeURIComponent(token)}; Path=/; SameSite=Lax`
+export const setRefreshToken = (token: string | null) => {
+  document.cookie = `${REFRESH_KEY}=${token ? encodeURIComponent(token) : ''}; Path=/; SameSite=Lax`
 }
 
 export const getRefreshToken = () => {

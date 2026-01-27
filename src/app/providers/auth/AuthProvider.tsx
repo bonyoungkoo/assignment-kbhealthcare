@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AuthContext, type AuthContextValue, type AuthUser } from './AuthContext'
 import { me } from '@/features/auth/api/auth.api'
-import { setAccessToken } from '@/shared/api/token'
+import { getRefreshToken, setAccessToken, setRefreshToken } from '@/shared/api/token'
 import { http } from '@/shared/api/http'
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('res', res)
     if (!res.ok) {
       setAccessToken(null)
+      setRefreshToken(null)
       setUser(null)
       return null
     }
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const run = async () => {
       try {
+        if (!getRefreshToken()) return
         await refreshAuth()
       } finally {
         setBooting(false)

@@ -68,4 +68,5 @@ export const http = {
   get: (url: string) => request(url),
   post: (url: string, body?: unknown) =>
     request(url, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  delete: (url: string) => request(url, { method: 'DELETE' }),
 }
