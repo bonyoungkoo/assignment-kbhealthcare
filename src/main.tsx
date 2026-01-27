@@ -6,9 +6,18 @@ import { AppProviders } from './app/providers/AppProviders.tsx'
 import { router } from './app/router/Router.tsx'
 
 async function enableMocking() {
-  if (import.meta.env.MODE !== 'development') return
-  const { worker } = await import('@/mocks/browser.ts')
-  return worker.start({ onUnhandledRequest: 'bypass' })
+  if (!import.meta.env.DEV) return
+
+  const { worker } = await import('@/mocks/browser')
+
+  const base = import.meta.env.BASE_URL
+  return worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: {
+      url: `${base}mockServiceWorker.js`,
+      options: { scope: base },
+    },
+  })
 }
 
 enableMocking().then(() => {

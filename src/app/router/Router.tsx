@@ -8,23 +8,28 @@ import Tasks from '@/pages/tasks/ui/Tasks'
 import Profile from '@/pages/profile/ui/Profile'
 import TaskDetail from '@/pages/tasks/ui/TaskDetail'
 
-export const router = createBrowserRouter([
-  {
-    element: <AppLayout />,
-    children: [
-      { path: '/login', element: <Login /> },
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
 
-      {
-        element: <ProtectedRoute />,
-        children: [
-          { path: '/', element: <Dashboard /> },
-          { path: '/tasks', element: <Tasks /> },
-          { path: '/tasks/:id', element: <TaskDetail /> },
-          { path: '/profile', element: <Profile /> },
-        ],
-      },
-    ],
-  },
+export const router = createBrowserRouter(
+  [
+    {
+      element: <AppLayout />,
+      children: [
+        { path: '/login', element: <Login /> },
 
-  { path: '*', element: <Navigate to="/" replace /> },
-])
+        {
+          element: <ProtectedRoute />,
+          children: [
+            { path: '/', element: <Dashboard /> },
+            { path: '/tasks', element: <Tasks /> },
+            { path: '/tasks/:id', element: <TaskDetail /> },
+            { path: '/profile', element: <Profile /> },
+          ],
+        },
+      ],
+    },
+
+    { path: '*', element: <Navigate to="/" replace /> },
+  ],
+  { basename },
+)
