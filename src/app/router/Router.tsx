@@ -6,6 +6,7 @@ import Login from '@/pages/login/ui/Login'
 import Dashboard from '@/pages/dashboard/ui/Dashboard'
 import Tasks from '@/pages/tasks/ui/Tasks'
 import Profile from '@/pages/profile/ui/Profile'
+import TaskDetail from '@/pages/tasks/ui/TaskDetail'
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/', element: <Dashboard /> },
           { path: '/tasks', element: <Tasks /> },
+          { path: '/tasks/:id', element: <TaskDetail /> },
           { path: '/profile', element: <Profile /> },
         ],
       },
