@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { theme } from '../theme'
 import { CssBaseline } from '@mui/material'
 import { AuthProvider } from './auth/AuthProvider'
+import { ModalProvider } from './modal/ModalProvider'
 
 const queryClient = new QueryClient()
 
@@ -11,7 +12,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ModalProvider>{children}</ModalProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )
